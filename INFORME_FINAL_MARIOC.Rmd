@@ -1,0 +1,466 @@
+---
+title: "Environmental conditions modulates functional traits of forest lichens: insights from South American Temperate Rainforests"
+author: "Mario A. Carvajal"
+date: "11/01/2021"
+output: 
+   bookdown::pdf_document2:
+    toc: no
+bibliography: Referencias.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(fig.pos = 'H')
+
+library(bookdown)
+library(tidyverse)
+library(MuMIn)
+library(mgcv)
+library(dplyr)
+library(knitr)
+library(kableExtra)
+library(ggplot2)
+library(ggpubr)
+library(tinytex)
+library(readr)
+library(rticles)
+library(png)
+library(RCurl)
+
+library(corrplot);
+library(piecewiseSEM); library(lme4); library(nlme); 
+library(iNEXT);library(mgcv);library(nlme);library(MuMIn);library(MASS);library(vegan)
+library(lme4);library(nlme);library(car); library("blmeco") 
+
+Liq.Data<-read.csv("https://raw.githubusercontent.com/mariocarvajall/Informe_final_ML/main/Liq.Data.csv", sep=";", head=TRUE)
+Trees<-read.csv("https://raw.githubusercontent.com/mariocarvajall/Informe_final_ML/main/Trees.csv", sep=";", head=TRUE)
+Trees$CWD <- 100*(Trees$CWD-min(Trees$CWD) ) / ( max(Trees$CWD)-min(Trees$CWD) )
+Species<-read.csv("https://raw.githubusercontent.com/mariocarvajall/Informe_final_ML/main/Species2.csv", sep=";", head=TRUE)
+Puntos<-read.csv("https://raw.githubusercontent.com/mariocarvajall/Informe_final_ML/main/Puntos_celdas.csv", sep=";", head=TRUE)
+
+G1000<-read.csv("https://raw.githubusercontent.com/mariocarvajall/Informe_final_ML/main/G1000.csv", sep=";", head=TRUE)
+G2000<-read.csv("https://raw.githubusercontent.com/mariocarvajall/Informe_final_ML/main/G2000.csv", sep=";", head=TRUE)
+G3000<-read.csv("https://raw.githubusercontent.com/mariocarvajall/Informe_final_ML/main/G3000.csv", sep=";", head=TRUE)
+G4000<-read.csv("https://raw.githubusercontent.com/mariocarvajall/Informe_final_ML/main/G4000.csv", sep=";", head=TRUE)
+
+```
+
+# Abstract
+
+Epiphytic and epixylic lichens respond negatively to forest degradation, climate change and pollution, but those effects may depend on functional traits or interact with the stage of tree decay. Disentangling the main drivers of lichen communities remains a challenge in regions where lichens are diverse and poorly known, as the case of Patagonian temperate forests. We used a multi-scale approach to evaluate the relationship between environmental variables, tree decay stage and lichens. We sampled lichens across three increasing scales (tree<<site<<landscape) by selecting 19 landscape units, where trees in four decay stages (snags, logs, cavity trees and healthy trees) were selected within sampling plots. A total of 35 predictors were measured over different scales, including 25 remote sensing indices of forest conditions, climate and air pollutants. Structural Equation Models were used to test the causal linkages of predictors with lichens, distinguishing the functional categorie of reproductive strategy. A total of 69 lichen species were recorded. Cavity trees and logs supported the largest diversity, while snags and healthy trees had the lowest diversity. The effects of fine-scale variables (bark pH, diameter, height and density of trees) were supported. Air pollutants affected species with sexual and mixed strategies. Lichens were sensitive to precipitations, temperatures and wind speed, with foliose and sexual species responding positively to the latter. Our findings suggest: i) the functional structure of communities varies with the wood decay process; ii) sensitivity to air pollutants is influenced by reproductive strategy, iii) climate variables influence dispersal and colonization of woody substrates; and iv) forest structure/succession interacts with tree decay.
+
+# Introduction
+
+Lichen species play an important role as microhabitat providers, water-holders and nutrient flow regulators, acquiring ecological relevance in low‐productivity forests [@Rodriguez-Quiel2019]. Lichens are found on woody substrates of different type and decay stage, with some species specialized on living trees (corticolous or epiphytic species), while others found mostly on decorticated wood (lignicolous species) or woody pieces at advanced stages of decay (e.g., epixylic species; @Dymytrova2016). The establishment of lichens on woody substrates is influenced by fine-grained biotic and abiotic conditions, including forest structure (e.g., canopy cover), microclimate, forest succession, competition with vascular plants and other bryophytes as well as attributes of woody substrate, such as diameter or pH [@Dymytrova2016]. Lichen communities are also driven by factors responsible for forest disturbances at the landscape scale [@Vondrak2019], as the case of deforestation, unsustainable forestry, fires and air pollution and climate change that cause the population decline of lichens [@Nascimbene2013]. Lichens may absorb air pollutants, bioaccumulating heavy metals in their tissues [@Branquinho1999], with some species being particularly sensible to phosphorus and nitrogen enrichment arising from airborne pollutants [@Wang2019]. 
+Lichens are considered to act as ecological indicators of environmental quality and long-term change, but their response to environmental changes largely depends on species-specific traits [@Munzi2014]. In this sense, distinguishing between functional groups based, for instance, upon size, growth form and reproductive strategy, contributes to a meaningful and accurate assessment of lichen communities in changing ecosystems [@Lucheta2019]. Understanding the persistence of lichen species in environmentally changing landscapes can be complex to address when the effects of multiple environmental factors that interact over multiple spatio-temporal scales are considered. Lichen communities on different tree decay stages may respond differently to climate, forest degradation and air pollution depending on how micro-habitat conditions (i.e., trees) and functional traits modulate those effects [@Aragon2019].
+
+Anthropogenic effects on lichens are scarcely known in temperate forests of southern South America, which are inhabited by an abundant and rich community of lichen species [@Quilhot2012]. South America temperate forests usually take more than 300 years to reach the old-growth stage, accumulating high quantities of deadwood that is biologically decomposed at slow rates [@Carmona2002]. Natural forest dynamics may create suitable conditions for the establishment of lichens, bryophytes and vascular plants on woody substrates, specially at lower forest strata. Epiphytic and epixylic organisms of austral forests may be vulnerable to forest degradation triggered by intensive timber harvesting, firewood extraction, human-caused fires and climate warming [@Echeverria2007]. Air pollution derived from firewood burning and industrial production in southern Chile may impose additional pressures on forest lichen communities. Previous studies have shown decreased lichen diversity in urban areas of southern Chile [@Varela2018], but the effects of air pollution and landscape-scale disturbances in natural or seminatural forests have not been evaluated yet. Here, we used a multi-scale approach to evaluate the relationship between lichens and tree decay stage in landscapes differing in terms of forest conditions, climate variables and concentration of air pollutants. We characterized the lichen’s habitat over different spatial scales and used a statistical framework appropriate to cope with the interrelated nature of predictor variables. We aim at addressing the following two research questions:
+
+- How do the diversity and abundance of functional groups of lichen species vary with the decay stage of trees?
+ 
+- How important are air pollution, climate and forest conditions on the diversity and abundance of functional groups of lichen species living on different tree decay stages?
+
+
+# Materials and methods
+
+## Study design
+
+We conducted our study during the austral spring 2019 in the northern Chilean Patagonia (40°- 41°S; 58-1,420 masl), comprising temperate forest ecosystems dominated by deciduous and evergreen southern beech tree species ( _Nothofagus pumilio_ and _N. dombeyi_ ) in association with other evergreen tree species, such as _Laureliopsis philippiana_ and _Eucryphia cordifolia_ . The forest in this zone has been historically lost for livestock production and more recently degraded by wood fuel extraction, unregulated logging, fires and overgrazing.
+
+We sampled lichens and quantified independent variables using a spatially hierarchical design based on three increasing scales (tree<<site<<landscape). We subdivided the study zone into a grid of 1 × 1 km cells, where each cell in the grid was considered as a potential landscape unit for sampling and analysis. We selected 19 landscape units with more than 18% forest cover and > 1 km apart from each other in order to reduce spatial independence. Depending on accessibility to forest areas, in each landscape we stablished between one and three 50 × 50 m sampling plots (>250 m apart), totalizing 27 plots. In each sampling plot we measured site-level habitat variables (see below) and selected four trees (>8 m apart; total= 108 trees), each representing a different stage of decay: 1) a living tree without large (>20 cm in entrance diameter) cavities and absence of rot in the first segment (0 to 8 m) of the trunk; 2) a living tree with the presence of large cavities and signs of wood decay fungi in the first segment (0 to 8 m) of the trunk; 3) a lying dead tree (log) in an intermediate decay stage conserving a fraction (30% to 60%) of the bark; 4) a standing dead tree (snag) in a relatively advanced decay stage, with a trunk being mostly decorticated. We did not consider logs with advanced decay where lichens were mostly absent. All living and dead trees had a diameter at the breast height (dbh) greater than 60 cm and trunks of more than 15 m long. The selected living trees were of the most abundant species ( _N. pumilio, N. dombeyi, L. philippiana and E. cordifolia_ ), but the species of logs and snags were not completely identified.
+
+
+## Lichen sampling
+
+Lichen species were sampled on the first two meters of the trunk of live and dead trees selected in sampling plots. In each 1-m section and cardinal direction (N, S, W and E) we established a 50 × 10 cm subplot, which was divided into five 10 × 10 m quadrants. In the case of logs, sampling subplots were set up on their exposed (above the ground) surface in two contiguous 1-m long sections. The presence of individual lichen species was surveyed in each quadrant, totalizing 40 quadrants (8 subplots × 5 quadrants/subplot) per sampled tree. The abundance of lichens was estimated as the sum of quadrants with the presence of the species (ranging from 0 to 40), while taxonomic richness (number of species) was estimated as the number of individual species detected in at least one quadrant. All lichen specimens were photographed and collected for later identification in laboratory. Species were assigned to a functional group according to three criteria: 1) size (microlichens and macrolichens); 2) growth form (crustose, foliose, fruticose, squamulose and gelatinose); and 3) reproductive strategy, including sexual, vegetative reproduction and mixed reproduction (sexual and vegetative).
+
+
+## Site- and tree-scale habitat variables
+
+In each plot we quantified habitat variables considered as important for lichen establishment at the site (sampling plot) and tree (sampling tree) levels. Site-level variables were: the density (tree ha-1) of trees >30 cm dbh, density of Coarse Woody Debris (CWD pieces ha-1, i.e., logs and snags >30 cm diameter) and height (m) of the tree canopy, measured with a hypsometer. Tree-level variables were: dbh, openness of canopy surrounding the tree and pH of bark. Dbh was measured with a diameter tape, and in the case of logs it was the mean diameter. Openness of canopy was estimated using a GoPro digital camera mounted on a pole (1.5 m above the ground level) and Gap Light Analyzer v 2.0 software. To quantify pH, we used a metal spatula to collect two 200 g of the bark of a living tree and two 15 mm deep sample of the surface of a tree without bark. The two samples per trees (total= 216 samples) were vacuum packed in plastic bags, transferred in a cooler (4°C) until were kept refrigerated in a freezer (-4°C) to avoid decomposition and alteration of samples. In the lab, samples were scraped to obtain the bark surface. The scraping was ground in a porcelain mortar to obtain a 5 g sample, which was diluted in 25 ml of ultra-purified water (1:5 ratio of solute to solvent). The solution was stirred for approximately 15 min using a magnetic stirrer to correctly dilute the bark sample. Subsequently, we quantified the pH of the mixture using a pH meter.
+
+## Landscape-scale variables
+
+A total of 24 remote sensing indices related to forest conditions (n=11 indices), climatic/physical factors (n=8 indices) and air pollutants (n=5 indices) were quantified in each landscape unit. Remote sensing products were accessed and processed in Google Earth Engine, a cloud-based platform for managing geospatial information. We considered satellite image/products available for the sampling year. Indices of forest conditions included the annual medians of plant senescence reflectance index (PSRI), normalized difference water index (NDWI), improved vegetation index (EVI), fraction of photosynthetically active radiation (FPAR), evapotranspiration (ET), vegetation continuous fields (VCF), gross primary production (GPP), global human modification (GHM), net primary productivity (NPP), soil organic carbon (SOC) and soil pH (soil_ph). Environmental pollution indices included the annual median concentrations of carbon monoxide (CO), nitrogen dioxide (NO2), ozone (O3), sulfur dioxide (SO2) and tropospheric column of atmospheric formaldehyde concentrations (HCHO). Climatic variables were the yearly median of relative humidity (Hr), wind speed averaged at 5 and 30 m height (Vel_30m and Vel_5m), the cumulative annual precipitation (pp) as well as the mean and maximum temperature in the last two years (t and tmax). Physical factors were the topographic diversity (TOPODIV) and mean elevation (masl).
+
+```{r figure1, fig.width=20, fig.height=20, echo=FALSE, message=F, warning=F, fig.align="center", fig.cap= "Path diagrams of structural equation models (SEM) testing for the causal relationships between the abundance of lichens (endogenous variables) and habitat variables at different spatial scales (exogenous variables), including all lichen species and species functionally grouped into reproductive strategy. Causal paths (unidirectional continuous arrow lines) are labeled with standardized coefficients. Paths representing the interaction effects of habitat variables and tree decay stages (habitat×decay) are shown by nodes (circles) on path interceptions. Red and blue lines are, respectively, negative effects (p < 0.05) and positive effects (p < 0.05) while line width is proportional to the strength of the standardized path coefficients. The marginal and conditional determination (R2m and R2c, respectively) coefficients are shown for each endogenous dependent variable. Only significant correlated errors paths (dotted red and blue arrow lines) between habitat variables are shown. "}
+url <- "https://i.ibb.co/Jc6tpcX/path-model-lichens.png"
+url_cont <- getURLContent(url)
+img <- readPNG(url_cont)
+rimg <- as.raster(img) # raster multilayer object
+r <- nrow(rimg) / ncol(rimg) # image ratio
+plot(rimg)
+```
+
+
+
+
+
+## Data analysis
+
+Structural Equation Models (SEM) were used to test the causal linkages of lichens (richness and abundance) with tree decay stage, tree-scale variables, site-scale variables and landscape-scale variables. As explained below, we also included interactions testing decay stage-dependent effects of climate, forest and air pollution. A total of four SEM were built, including a causal model for all species, and species functionally grouped by size, growth form and reproductive strategy. SEM were fitted using the psem function in the PiecewiseSEM R package, which offers a causal framework for modelling endogenous (response) variables with generalized linear mixed-effects models (GLMM) while specifying the correlation structure between exogenous (predictors) variables [@Lefcheck2016]. We checked for overdispersion in lichen abundance and richness data by estimating the dispersion parameter and using the dispersion glmer function in the blmeco R package. Thus, we modelled lichen abundance using the glmer function (Poisson distribution) and lichen richness using glmer.nb function (Negative Binomial distribution), both implemented in the R package lme4. A spatially nested-error structure was included in GLMM, with site random factor nested into a landscape random factor. All continuous predictors were standardized to obtain comparable effect sizes. 
+
+To cope with the high number of exogenous variables (n= 35 variables), we built causal models based on an a priori model selection procedure that reduced the complexity of SEM in terms of number of predictors. First, using GLMM we determined which of the landscape-scale variables (n=25) contributed most to the variability in abundance/richness of lichen species. The dredge function of the R package MuMIn was used to identify the best candidate models with all possible combinations of landscape-scale variables. Redundancy in predictors and multicollinearity problems were reduced through not including highly correlated variables (-0.75<rs>0.75) in the same models. Candidate models were selected based on Akaike information Criterion corrected for small sample sizes (AICc), with models being considered as equally supported when AICc differences (Delta AICc) from the best model was less than two units. We used the model.avg function in the MuMIn R package to estimate the significance (p-value) and AIC-weighted importance of each model-averaged coefficient. Based on model averaging, we distinguished the variables that affected abundance/richness of lichen species and retained these effects for posterior analysis. Second, we built GLMM combining the landscape-scale variables selected in the previous step with site-scale and tree-scale variables, including interactions with decay stages. A backward stepwise GLMM selection procedure was conducted to retain variables with significant effects (p<0.05) on lichen richness and abundance, with the resulting models being used to build piecewise SEM. The decay stage of trees (living tree without cavities, living tree with cavities, logs and snags) was converted into dummy variables to improve the assessment of interactions with other variables. We specified correlation (undirected) paths between exogenous predictive variables measured at the same and different spatial scales in order to include dependence between those variables. Fisher C statistic was used to assess the goodness-of-fit of SEM, with significant (p < 0.05) C values indicating that the model fails in fitting data due to missing links [@Shipley2013]. To identify missing links, we tested for directed separation (i.e., causal independence of paths) using the dSep function in the PiecewiseSEM R package. After including missing correlations (when necessary), we considered causal models to be consistent with the data when a non-significant Fisher's C test was found [@Shipley2013]. Response variables were discarded from SEM analyses when contributed to significant Fisher's C test scores (p<0.05) or caused problems with model fit, as the case of abundance and richness of fruticose, squamulose and gelatinose species, as well as the richness of microlichens and species of all reproductive strategies. Path diagrams were developed to improve the interpretation of SEM. Standardized path coefficients were used to compare the relative importance of predictors effects. The marginal and conditional determination (Rm2 and Rm2, respectively) coefficients were used as evidence of model fit. We tested for spatial autocorrelation in SEM residuals using Mantel statistic estimated with the mantel function in vegan R package.
+
+
+
+```{r, include=FALSE}
+Error<-rep(seq(9, 10, length.out = NROW(Trees)/2)-seq(10, 9, length.out = NROW(Trees)/2),2)-
+rep(seq(10, 9, length.out = NROW(Trees)/2)-seq(9, 10, length.out = NROW(Trees)/2),2)
+DiY<-DiX<-rep(c(-6,9,-7,8),NROW(Trees)/4) ; DiY<-DiY+Error;  DiX<-DiX+Error[NROW(Error):1] 
+LaT<-Lon<-c(); 
+for(i in 1:NROW(Puntos)){LaT1<- rep(Puntos$Lat[i],4); Lon1<- rep(Puntos$Lon[i],4);
+LaT<-c(LaT, LaT1); Lon<-c(Lon, Lon1)} ; LaT<-(LaT*100000)+DiY;  Lon<-(Lon*100000)+DiX; 
+summary(dist(cbind(LaT, Lon)))
+
+L1000<-L2000<-L3000<-L4000<-c()
+for(i in 1:NROW(Trees)){
+Plot<-Trees[i,"Habitat.plot"]; 
+L100<-G1000[which(G1000$Celdas==Puntos[which(Puntos$Punto==Trees[i,"Habitat.plot"]),"X1000m"]),]
+L200<-G2000[which(G2000$Celdas==Puntos[which(Puntos$Punto==Trees[i,"Habitat.plot"]),"X2000m"]),]
+L300<-G3000[which(G3000$Celdas==Puntos[which(Puntos$Punto==Trees[i,"Habitat.plot"]),"X3000m"]),]
+L400<-G4000[which(G4000$Celdas==Puntos[which(Puntos$Punto==Trees[i,"Habitat.plot"]),"X4000m"]),]
+L100<-cbind(Plot,L100);L200<-cbind(Plot,L200);L300<-cbind(Plot,L300);L400<-cbind(Plot,L400);
+L1000<-rbind(L1000,L100)
+L2000<-rbind(L2000,L200)
+L3000<-rbind(L3000,L300)
+L4000<-rbind(L4000,L400)  }  ##
+dim(L1000);dim(L2000);dim(L3000);dim(L4000);
+L1000<-L1000[,-which(colnames(L1000)=="radiation")];L2000<-L2000[,-which(colnames(L2000)=="radiation")]
+L3000<-L3000[,-which(colnames(L3000)=="radiation")]; L4000<-L4000[,-which(colnames(L4000)=="radiation")]
+L1000<-L1000[,-which(colnames(L1000)=="canopy_height")];L2000<-L2000[,-which(colnames(L2000)=="canopy_height")]
+L3000<-L3000[,-which(colnames(L3000)=="canopy_height")]; L4000<-L4000[,-which(colnames(L4000)=="canopy_height")]
+
+colnames(L1000)[2]<-colnames(L2000)[2]<-colnames(L3000)[2]<-colnames(L4000)[2]<-"LAND"
+
+
+SpM1<-Liq.Data[,which(colnames(Liq.Data)=="S1"):which(colnames(Liq.Data)=="S69")]
+##load("SM.RData")
+
+SM<- matrix(0,ncol=69, nrow=NROW(Trees))
+ for(i in 1:69){
+Sf<-SpM1[,i]; Sf[which(Sf>0)]<-1
+SM[,i]<- as.vector(tapply(Sf,Liq.Data$Tree, sum))     } ##
+
+Cr.SP<-which(Species$Morpho=="Cr");SM.Cr<-SM[,Cr.SP]
+Fr.SP<-which(Species$Morpho=="Fr");SM.Fr<-SM[,Fr.SP]
+Fo.SP<-which(Species$Morpho=="Fo");SM.Fo<-SM[,Fo.SP]
+Es.SP<-which(Species$Morpho=="Es");SM.Es<-SM[,Es.SP]
+Micro.SP<-which(Species$Size=="Micro");SM.Micro<-SM[,Micro.SP]
+Macro.SP<-which(Species$Size=="Macro");SM.Macro<-SM[,Macro.SP]
+Sex.SP<-which(Species$Reproduction=="Sexual");SM.Sex<-SM[,Sex.SP]
+Asex.SP<-which(Species$Reproduction=="Vegetative");SM.Asex<-SM[,Asex.SP]
+Both.SP<-which(Species$Reproduction=="Mixed");SM.Both<-SM[,Both.SP]
+
+
+Mean.Liq<-apply(SM, 2, function(x) mean(100*x/40))
+SE.Liq<-apply(SM, 2, function(x) sd(100*x/40)/(108^0.5))
+P.Liq<-apply(SM, 2, function(x) 100*sum(ifelse(x>0,1,0))/108  )
+Species.Liq<- round( cbind(Mean.Liq,SE.Liq,P.Liq ), 2 )
+##write.table(Species.Liq, file="Species.Liq.csv", sep=";", row.names=TRUE)
+
+######################################################################################################
+##########################################################################################################
+Richness<-apply(SM, 1, function(x) sum(ifelse(x>0,1,0) ))
+Number<-apply(SM, 1, function(x) sum(x, na.rm=TRUE) )
+Richness.Cr <-apply(SM.Cr, 1, function(x) sum(ifelse(x>0,1,0) ))
+Number.Cr <-apply(SM.Cr, 1, function(x) sum(x, na.rm=TRUE) )
+Richness.Fr <-apply(SM.Fr, 1, function(x) sum(ifelse(x>0,1,0) ))
+Number.Fr <-apply(SM.Fr, 1, function(x) sum(x, na.rm=TRUE) )
+Richness.Fo <-apply(SM.Fo, 1, function(x) sum(ifelse(x>0,1,0) ))
+Number.Fo <-apply(SM.Fo, 1, function(x) sum(x, na.rm=TRUE) )
+Richness.Es <-apply(SM.Es, 1, function(x) sum(ifelse(x>0,1,0) ))
+Number.Es <-apply(SM.Es, 1, function(x) sum(x, na.rm=TRUE) )
+Richness.Micro <-apply(SM.Micro, 1, function(x) sum(ifelse(x>0,1,0) ))
+Number.Micro <-apply(SM.Micro, 1, function(x) sum(x, na.rm=TRUE) )
+Richness.Macro <-apply(SM.Macro, 1, function(x) sum(ifelse(x>0,1,0) ))
+Number.Macro <-apply(SM.Macro, 1, function(x) sum(x, na.rm=TRUE) )
+Richness.Sex <-apply(SM.Sex, 1, function(x) sum(ifelse(x>0,1,0) ))
+Number.Sex <-apply(SM.Sex, 1, function(x) sum(x, na.rm=TRUE) )
+Richness.Asex <-apply(SM.Asex, 1, function(x) sum(ifelse(x>0,1,0) ))
+Number.Asex <-apply(SM.Asex, 1, function(x) sum(x, na.rm=TRUE) )
+Richness.Both <-apply(SM.Both, 1, function(x) sum(ifelse(x>0,1,0) ))
+Number.Both <-apply(SM.Both, 1, function(x) sum(x, na.rm=TRUE) )
+
+
+Data.lich<-cbind(Richness,Number,Richness.Cr,Number.Cr,Richness.Fr,Number.Fr,Richness.Fo,Number.Fo,
+             Richness.Es,Number.Es,Richness.Macro,Number.Macro,Richness.Micro,Number.Micro,
+              Richness.Sex,Number.Sex, Richness.Asex,Number.Asex,Richness.Both,Number.Both)## response variables in GLMM
+
+
+State<-Trees$State; 
+LAND<-L1000$LAND; Plot<-L1000$Plot
+Datz<-scale(L1000[,4:ncol(L1000)])[1:NROW(LAND) , ]
+Data.GLMM<- data.frame(LAND, Plot,Datz, State);
+colnames(Data.GLMM)
+
+ Metrics<-colnames(Data.lich)
+ is.even <- function(x) x %% 2 == 0
+
+
+GROUP<-c("Richness","Number","Richness.Cr","Number.Cr","Richness.Fo","Number.Fo","Richness.Es","Number.Es", 
+    "Richness.Macro","Number.Macro","Richness.Micro","Number.Micro","Richness.Sex","Number.Sex",
+    "Richness.Asex","Number.Asex","Richness.Both","Number.Both" )
+LG<-ifelse(Data.GLMM$State=="LG",1,0);LG1<-ifelse(Data.GLMM$State=="LG",1,0);
+SC<-ifelse(Data.GLMM$State=="SC",1,0);SC1<-ifelse(Data.GLMM$State=="SC",2,0);
+SN<-ifelse(Data.GLMM$State=="SN",1,0); SN1<-ifelse(Data.GLMM$State=="SN",3,0);
+H<-ifelse(Data.GLMM$State=="H",1,0); H1<-ifelse(H>1,1,0); 
+STATE<-LG1+SC1+SN1+H1
+Plot.Scale<-scale(Trees[,c("Ph","Ct","Densidad","DAP","height","CWD" )])[1:NROW(Trees),]
+##############################################################################################################
+
+ NDWIxLG  <- Data.GLMM[,"NDWI"] * LG
+  ppxLG     <-Data.GLMM[,"pp"] * LG
+ NDWIxLG  <- Data.GLMM[,"NDWI"] * LG
+  ppxLG     <-Data.GLMM[,"pp"] * LG
+  NppxSN     <-Data.GLMM[,"Npp"] * SN
+PSRIxLG      <-Data.GLMM[,"PSRI"] * LG
+vel_30m_m00_llxLG      <-Data.GLMM[,"vel_30m_m00_ll"] * LG
+vel_5m_m00_llxLG      <-Data.GLMM[,"vel_5m_m00_ll"] * LG
+temp_maxxLG           <- Data.GLMM[,"temp_max"] * LG
+ NDWIxLG  <- Data.GLMM[,"NDWI"] * LG
+no2xLG       <-Data.GLMM[,"no2"] * LG
+no2xSC       <-Data.GLMM[,"no2"] * SC
+no2xSN       <-Data.GLMM[,"no2"] * SN
+no2xH       <-Data.GLMM[,"no2"] * H
+vel_30m_m00_llxLG      <-Data.GLMM[,"vel_30m_m00_ll"] * LG
+vel_30m_m00_llxSN      <-Data.GLMM[,"vel_30m_m00_ll"] * SN
+vel_5m_m00_llxLG      <-Data.GLMM[,"vel_5m_m00_ll"] * LG
+temp_maxxLG           <- Data.GLMM[,"temp_max"] * LG
+temp_maxxSC           <- Data.GLMM[,"temp_max"] * SC
+temp_maxxSN           <- Data.GLMM[,"temp_max"] * SN
+temp_maxxH           <- Data.GLMM[,"temp_max"] * H
+VCFxLG                <- Data.GLMM[,"VCF"] * LG
+VCFxSC                <- Data.GLMM[,"VCF"] * SC
+VCFxSN                <- Data.GLMM[,"VCF"] * SN
+VCFxH                <- Data.GLMM[,"VCF"] * H
+socxLG      <-Data.GLMM[,"soc"] * LG
+socxSC      <-Data.GLMM[,"soc"] * SC
+socxSN      <-Data.GLMM[,"soc"] * SN
+PSRIxLG      <-Data.GLMM[,"PSRI"] * LG
+PSRIxSC      <-Data.GLMM[,"PSRI"] * SC
+PSRIxSN      <-Data.GLMM[,"PSRI"] * SN
+ppxLG     <-Data.GLMM[,"pp"] * LG
+ppxSC     <-Data.GLMM[,"pp"] * SC
+ppxSN     <-Data.GLMM[,"pp"] * SN
+soil_phxSN    <-Data.GLMM[,"soil_ph"] * SN
+soil_phxSC    <-Data.GLMM[,"soil_ph"] * SC
+ETxLG     <-Data.GLMM[,"ET"] * LG
+ETxSC     <-Data.GLMM[,"ET"] * SC
+ETxSN     <-Data.GLMM[,"ET"] * SN
+EVIxLG     <-Data.GLMM[,"EVI"] * LG
+EVIxSC     <-Data.GLMM[,"EVI"] * SC
+EVIxSN     <-Data.GLMM[,"EVI"] * SN
+NppxLG     <-Data.GLMM[,"Npp"] * LG
+NppxSC     <-Data.GLMM[,"Npp"] * SC
+NppxSN     <-Data.GLMM[,"Npp"] * SN
+rel_humidityxH     <-Data.GLMM[,"rel_humidity"] * H
+rel_humidityxSC    <-Data.GLMM[,"rel_humidity"] * SC
+rel_humidityxLG     <-Data.GLMM[,"rel_humidity"] * LG
+rel_humidityxSN    <-Data.GLMM[,"rel_humidity"] * SN
+SO2xSC     <-Data.GLMM[,"SO2"] * SC
+
+
+#############################################################
+ Y2<- as.vector(get(GROUP[14])) ;GROUP[14]   
+ Y4<- as.vector(get(GROUP[16])) ;GROUP[16]
+ Y6<- as.vector(get(GROUP[18])) ;GROUP[18]
+
+colnames(Plot.Scale)
+
+dataset <-data.frame(Y2,Y4,Y6,Data.GLMM,LG,SC,SN,H,STATE,NDWIxLG,ppxLG,vel_5m_m00_llxLG,Plot.Scale,temp_maxxSN, 
+                    temp_maxxH, soil_phxSC, VCFxH, no2xH, vel_30m_m00_llxLG,vel_30m_m00_llxSN, temp_maxxLG,temp_maxxSC,temp_maxxSN, no2xLG,no2xSC,no2xSN,VCFxLG,VCFxSC,VCFxSN,
+                    socxLG,socxSC,socxSN,PSRIxLG,PSRIxSC,PSRIxSN,ppxLG,ppxSC,ppxSN,ETxLG,ETxSC,ETxSN,EVIxLG,EVIxSC,EVIxSN,NppxLG,NppxSC,NppxSN,
+                    SO2xSC,rel_humidityxLG, rel_humidityxSC ,rel_humidityxSN, rel_humidityxH, soil_phxSN  )
+dataset$STATE<-as.factor(dataset$STATE); VV<-dataset$STATE
+levels(dataset$STATE)<- c("LG","SC","SN","H")
+
+colnames(dataset)[which(colnames(dataset)=="vel_30m_m00_ll" )]<- "vel_0m_m00_ll"
+colnames(dataset)[which(colnames(dataset)=="gHM_" )]<- "gHM"
+
+####################################################
+#### Number.Sex Number.Sex
+
+LICH1<- psem( glmer(Y2 ~ vel_0m_m00_ll+LG+SN+no2xH+DAP +
+            (1 | LAND/Plot), family=poisson, data=dataset, glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 100000))) , 
+           glmer(Y4 ~H+VCF+socxSC+socxLG +
+            (1 | LAND/Plot), family=poisson, data=dataset, glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 100000))),
+           glmer(Y6 ~ Densidad+SN+SO2xSC+Ph+rel_humidityxLG+rel_humidityxSN+
+            (1 | LAND/Plot), family=poisson, data=dataset, glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 100000))) )
+Res<-residuals(LICH1 ) 
+
+
+NB<- c("Y2","Y4","Y6","vel_0m_m00_ll", "LG","SN","no2xH","DAP","H","VCF","socxSC",  "socxLG","Densidad",  "SN",  "SO2xSC",  "Ph",  "rel_humidityxLG",  "rel_humidityxSN")
+dataset[,NB]
+
+
+LICH1  <-update(LICH1,   vel_0m_m00_ll %~~% DAP);LICH1  <-update(LICH1,  vel_0m_m00_ll %~~% Ph);
+LICH1  <-update(LICH1,   vel_0m_m00_ll %~~% Densidad);LICH1  <-update(LICH1, vel_0m_m00_ll %~~% SN);
+LICH1  <-update(LICH1,   vel_0m_m00_ll %~~%   LG);LICH1  <-update(LICH1, vel_0m_m00_ll %~~% H)
+LICH1  <-update(LICH1,   vel_0m_m00_ll %~~% VCF);
+LICH1  <-update(LICH1,   vel_0m_m00_ll   %~~% socxLG)
+LICH1  <-update(LICH1,   vel_0m_m00_ll %~~% socxSC); LICH1  <-update(LICH1,   vel_0m_m00_ll  %~~% no2xH)
+LICH1  <-update(LICH1,   vel_0m_m00_ll %~~% rel_humidityxLG); LICH1  <-update(LICH1,   vel_0m_m00_ll   %~~% rel_humidityxSN)
+
+
+LICH1  <-update(LICH1, DAP %~~% Ph);
+LICH1  <-update(LICH1, DAP %~~% Densidad);LICH1  <-update(LICH1, DAP %~~% SN);
+LICH1  <-update(LICH1, DAP %~~%   LG);LICH1  <-update(LICH1, DAP %~~% H)
+LICH1  <-update(LICH1, DAP %~~% VCF);
+LICH1  <-update(LICH1, DAP   %~~% socxLG)
+LICH1  <-update(LICH1, DAP %~~% socxSC); LICH1  <-update(LICH1, DAP   %~~% no2xH)
+LICH1  <-update(LICH1, DAP %~~% rel_humidityxLG); LICH1  <-update(LICH1, DAP   %~~% rel_humidityxSN)
+
+LICH1  <-update(LICH1, Ph %~~% Densidad);LICH1  <-update(LICH1, Ph %~~% SN);
+LICH1  <-update(LICH1, Ph %~~%   LG);LICH1  <-update(LICH1, Ph %~~% H)
+LICH1  <-update(LICH1, Ph %~~% VCF);
+LICH1  <-update(LICH1, Ph   %~~% socxLG)
+LICH1  <-update(LICH1, Ph %~~% socxSC); LICH1  <-update(LICH1, Ph   %~~% no2xH)
+LICH1  <-update(LICH1, Ph %~~% rel_humidityxLG); LICH1  <-update(LICH1, Ph   %~~% rel_humidityxSN)
+
+LICH1  <-update(LICH1, Densidad %~~% SN);
+LICH1  <-update(LICH1, Densidad %~~%   LG);LICH1  <-update(LICH1, Densidad %~~% H)
+LICH1  <-update(LICH1, Densidad %~~% VCF);
+LICH1  <-update(LICH1, Densidad   %~~% socxLG)
+LICH1  <-update(LICH1, Densidad %~~% socxSC); LICH1  <-update(LICH1, Densidad   %~~% no2xH)
+LICH1  <-update(LICH1, Densidad %~~% rel_humidityxLG); LICH1  <-update(LICH1, Densidad   %~~% rel_humidityxSN)
+
+LICH1  <-update(LICH1, SN %~~%   LG);LICH1  <-update(LICH1, SN %~~% H)
+LICH1  <-update(LICH1, SN %~~% VCF);
+LICH1  <-update(LICH1, SN   %~~% socxLG)
+LICH1  <-update(LICH1, SN %~~% socxSC); LICH1  <-update(LICH1, SN   %~~% no2xH)
+LICH1  <-update(LICH1, SN %~~% rel_humidityxLG); LICH1  <-update(LICH1, SN   %~~% rel_humidityxSN)
+
+LICH1  <-update(LICH1,   LG %~~% H)
+LICH1  <-update(LICH1,   LG %~~% VCF);
+LICH1  <-update(LICH1,   LG   %~~% socxLG)
+LICH1  <-update(LICH1,   LG %~~% socxSC); LICH1  <-update(LICH1,   LG   %~~% no2xH)
+LICH1  <-update(LICH1,   LG %~~% rel_humidityxLG); LICH1  <-update(LICH1,   LG   %~~% rel_humidityxSN)
+
+LICH1  <-update(LICH1, H %~~% VCF);
+LICH1  <-update(LICH1, H   %~~% socxLG)
+LICH1  <-update(LICH1, H %~~% socxSC); LICH1  <-update(LICH1, H   %~~% no2xH)
+LICH1  <-update(LICH1, H %~~% rel_humidityxLG); LICH1  <-update(LICH1, H   %~~% rel_humidityxSN)
+
+LICH1  <-update(LICH1, VCF   %~~% socxLG)
+LICH1  <-update(LICH1, VCF %~~% socxSC); LICH1  <-update(LICH1, VCF   %~~% no2xH)
+LICH1  <-update(LICH1, VCF %~~% rel_humidityxLG); LICH1  <-update(LICH1, VCF   %~~% rel_humidityxSN)
+
+LICH1  <-update(LICH1, socxLG %~~% socxSC); LICH1  <-update(LICH1, socxLG   %~~% no2xH)
+LICH1  <-update(LICH1, socxLG %~~% rel_humidityxLG); LICH1  <-update(LICH1, socxLG   %~~% rel_humidityxSN)
+
+LICH1  <-update(LICH1, socxSC   %~~% no2xH)
+LICH1  <-update(LICH1, socxSC %~~% rel_humidityxLG); LICH1  <-update(LICH1, socxSC   %~~% rel_humidityxSN)
+
+LICH1  <-update(LICH1, no2xH %~~% rel_humidityxLG); LICH1  <-update(LICH1, no2xH   %~~% rel_humidityxSN)
+
+LICH1  <-update(LICH1, rel_humidityxLG   %~~% rel_humidityxSN)
+
+  LICH1  <-update(LICH1, Y2 %~~% Y4)
+  LICH1  <-update(LICH1, Y2 %~~% Y6)
+  LICH1  <-update(LICH1, Y4 %~~% Y6)
+
+LICH1<-summary(LICH1,  .progressBar = F)
+ 
+##########################################################
+XX<-Trees$Longitud; YY<- Trees$Latitud
+SpatialD<- as.matrix(dist(cbind(XX, YY)))
+ManT<- rep(NA, ncol(Res))
+  for(k in 1:ncol(Res)){
+         DistR <- dist(Res[,k])
+         d<-mantel(SpatialD, DistR) ; 
+           ManT[k] <-d$signif  }
+  MAntel.Sexo<-matrix(ManT,ncol=ncol(Res), nrow=1)
+  colnames(MAntel.Sexo)<-c( GROUP[14], GROUP[16], GROUP[18])
+
+  Fisher1<-LICH1$Cstat
+ Model<-rep("Sexo species",  NROW(Fisher1)) ; 
+Fisher.Reproductive<-data.frame(cbind(Fisher1,Model ))
+
+AIc1<-LICH1$IC
+Model<-rep("Sexo species",  NROW(AIc1)) ;  
+AIc.Reproductive<-data.frame(cbind(AIc1,Model ))
+
+Coef.SEM1<-LICH1$coefficients; 
+ Model<-rep("Reproductive group",  NROW(Coef.SEM1)) ;
+Coef.Reproductive<-data.frame(cbind(Coef.SEM1,Model))
+
+Coef.Reproductive.Sig<-Coef.Reproductive[which(Coef.Reproductive$P.Value<0.051), ]
+
+R2.SEM1<-LICH1$R2; 
+Model<-c( GROUP[14], GROUP[16], GROUP[18])
+R2.Reproductive<-data.frame(cbind(R2.SEM1,Model))
+
+
+################################################################################################################
+Original.X<- (L1000[,4:ncol(L1000)])[1:NROW(LAND) , ]
+attach(dataset); 
+
+M3<- glm(Y2 ~ vel_0m_m00_ll+LG+SN+no2xH+DAP , family=poisson, data=dataset)
+summary(M3)
+
+A<-summary(dataset$vel_0m_m00_ll) ;summary(dataset$vel_0m_m00_ll) ##
+
+ XX<- Original.X$vel_30m_m00_ll;summary(XX)  
+ Xnew<- round(seq(A[1],A[6], length.out = 100),3)
+
+newd <-data.frame(  vel_0m_m00_ll=Xnew, no2xH=0,SN=1,DAP=0,LG=1  )
+D1<-predict(M3, newdata = newd, se.fit = TRUE) 
+
+
+ yb<- D1$fit  ; yy<- (100*exp(yb) )/40
+ Error<- D1$se.fit; 
+ Error1<-(100*  exp(yb+Error) )/40 
+ Error2<- (100*  exp(yb-Error) )/40
+ xx<-  (Xnew*sd(XX)+ mean(XX))
+
+CA<-1
+
+```
+
+
+# Results
+
+## Lichen diversity and environmental variables
+
+A total of 69 species of lichen species were recorded in the 108 sampling trees of different decay stages. Five species, including _Sticta caulescens, Usnea spp, Varicellaria velata, Pseudocyphellaria berberina, P. flavicans, and Nephroma antarcticum_ were the most abundant ones, each recorded in more of ten sampling trees.
+
+Structural Equation Models (SEM) supported the effects of tree decay stage, forest conditions, climatic factors, air pollutants, tree density, tree height, tree dbh and bark pH. SEM fitted data satisfactorily (Fisher C < 66.7; p >0.141) and included different correlated errors (-0.68 < r < 0.77) between predictors (Table \@ref(tab:table1)) (Figure \@ref(fig:figure1)). 
+
+```{r table1,echo=F,warning=F,include=T}
+suppressMessages(Coef.Reproductive.Sig %>% kable(caption = "SEM coefficients for both response variable and predictors") %>% kable_styling(bootstrap_options = c("stripped","hover"),latex_options = "scale_down"))
+
+```
+
+Species grouped by reproductive strategy were particularly affected by air pollutants in addition to climate and forest conditions. The abundance of lichen species with sexual strategy decreased in snags, logs and large dbh trees (Table \@ref(tab:table1)). Landscapes with larger wind speed supported a higher abundance of sexual lichen species (Figure \@ref(fig:figure2)) and their abundance in snags decreased in landscapes with higher concentrations of nitrogen dioxide (NO2). Species with a vegetative reproduction were more abundant in cavity trees and in landscapes with lower VCF values (Table 1). Vegetative lichen species present in logs and trees without cavities increased their abundance as the soil organic carbon content (SOC) increased in the landscape. Trees without cavities supported lower abundance of mixed reproduction species in landscapes with larger concentration of Sulfur dioxide (SO2; (Table \@ref(tab:table1))).
+
+
+```{r figure2, warning=FALSE, echo=FALSE, include=TRUE, fig.align='center', fig.cap= "Wind speed effect on lichen abundance considering sexual species"}
+
+suppressMessages(plot(xx,yy, mgp = c(2, 1, 0) , lty=2, ylim= c(0, max(Error1)),  xlim= c(min(xx), max(xx)),xlab="" ,type="n",las=1 , 
+ ylab= ""  ,  cex.lab=CA,cex.axis=CA,cex.main=CA*1.1, axes=TRUE, main="" ) )
+     title(main ="Sexual species", adj  = 0, line=0.5,cex.main=CA)
+  mtext(side=2, line=3.3, text= "Lichen abundance (%)", cex=CA)
+ mtext(side=1, line=3.3, text= "Wind speed (m/s)", cex=CA)
+  
+ polygon(x=c(xx,rev(xx)),y=c(Error1,rev(yy)),col=rgb(0, 0.1, 1,0.3),border=NA)
+ polygon(x=c(xx,rev(xx)),y=c(Error2,rev(yy)),col=rgb(0, 0.1, 1,0.3),border=NA)
+
+  lines(xx,yy, col="Darkblue", lwd=2)   
+
+```
+
+# Discussions
+
+The tree decay stage was an important factor in shaping communities of lichen species in Patagonian temperate forests, influencing their responses to climate, forest conditions and air pollutants. However, the effects of environmental drivers on lichen communities emerge only when lichens are grouped and analyzed into functional categories. Overall, our results provided the following insights into the ecological processes responsible for lichen diversity and abundance:
+
+i) Sensitivity to air pollutants is influenced by reproductive strategy and woody substrate. Air pollutant (NO2 and SO2) effects were evidenced in species with sexual and mixed strategies living in living trees, contrasting with some studies that have not found air pollution effects on sexual lichen species [@Lucheta2019]. Urban generated pollution has been observed to affect lichens of the northern hemisphere [@Hauck2013] making them good ecological indicators [@Llop2012], but certain lichens can effectively colonize polluted sites (Rola 2019). Our results suggest the study landscapes are exposed to pollution from urban and industrial sources, in accordance with previous studies showing positive association of lichen diversity with air particulate matter in urban lands of southern Chile [@Varela2018]. Indeed, pollutants derived from intensive urban firewood consumption in southern Chile can easily reach rural forest landscapes. 
+
+ii) Climate variables influence lichen dispersal and colonization of woody substrates.  Depending on functional groups, lichens were sensitive to precipitations, temperatures and wind speed. The negative response of crustose and microlichens to precipitation amount could result from low tolerance to extremely rainy conditions or increased competition with bryophytes and vascular plants under those conditions [@Rodriguez-Quiel2019]. Otherwise, precipitations and humidity had the opposite (positive) effect, on crustose lichens, microlichens and mixed reproduction species occupying logs, which is consistent with the elevated richness of epiphytic lichens found in the floor of old humid Nothofagus forests. Increased temperatures on the forest floor after the creation of tree felling gaps may explain the positive thermal response of macrolichens in logs. However, high temperatures may induce heat stress and reduce photosynthesis efficiency, making lichens particularly vulnerable to global warming (Pisani 2007). In this sense, the lower macrolichen abundance in the warmest landscapes suggests a decline in habitat suitability due to the increased frequency of drought events in northern Patagonian forests (Venegas-González et al., 2018). The positive response of foliose and sexual species to wind speed suggests those species increase their dispersal rates in windier landscapes where their propagules (e.g., spores) have the opportunity of being long-distance dispersed by the wind, thus contributing to understand colonization-extinction dynamics (Johansson et al., 2018). Otherwise, lichen species with sexual reproduction usually have long-distance dispersion strategies (Koch et al., 2019) and dispersal patterns dependent on climatic conditions [@Nascimbene2013]. Thus, species with sexual reproduction are expected to be less sensitive to habitat isolation than species with clonal reproduction (Ying 2018). 
+
+## Conservation implications 
+
+Our findings provide novel information about lichen communities occupying deadwood substrates in Patagonian temperate forest with important implications for forest management. Our findings suggest lichens communities respond to multiple factors over different spatial scales. Degradation of temperate forests drives lichen communities through changes in landscape-scale forest conditions, climate warming and forest stand disturbances. The retention of standing senescent trees and old-growth forest stands may ensure the provision of ecological structures critical to lichen diversity. In this sense, we suggest tree senescence to be used as a landscape-scale criterion in forest management as well as the retention of trees in their different stages of decay within stands.  
+
+# References
+
